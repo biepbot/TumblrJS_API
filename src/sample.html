@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+        <script src="js/tumblr.js?v=1.14" type="text/javascript"></script>
+    </head>
+    <style>
+        body {
+            font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+            max-width: 100%;
+            max-width: 500px;
+            margin: auto;
+            padding: 10px;
+            background: #fff;
+        }
+        .loaded-image img.medium, 
+        .mini-image-holder img.broad {
+            width: 100%;
+        }
+        .mini-image-holder img {
+            width: 50%;
+            display: inline-block;
+        }
+        html {
+            background: #222;
+        }
+        img {
+            max-width: 100%;
+        }
+        .loaded-image ul {
+            padding-left: 0;
+        }
+        .loaded-image li {
+            position: relative;
+            font-size: 20px;
+            display: inline-block;
+            margin: 5px;
+            height: 28px;
+            line-height: 28px;
+        }
+        #loader {
+            display: block;
+            width: 100%;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            background: #7a9dff;
+            color: #fff;
+            font-weight: bold;
+        }
+        #loader:hover {
+            background: #577ce4;
+            cursor: pointer;
+        }
+        .tags {
+            padding: 0;
+        }
+        .tags li {
+            padding: 5px;
+            color: #cfcfcf;
+            display: inline-block;
+            font-size: 10px;
+        }
+        #template {
+            display: none;
+        }
+        .audio-plays,
+        .date {
+            font-size: 10px;
+            color: #747474;
+        }
+        li.conversation {
+            display: block;
+            height: initial;
+            background: #EEE;
+            padding: 5px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        li.conversation:hover {
+            background: #DDD;
+        }
+        .name {
+            font-weight: bold;
+            display: inline-block;
+            width: 100px;
+        }
+        .audio iframe {
+            width: 100%;
+        }
+        .audio-title {
+            text-align: center;
+        }
+        video {
+            width: 100%;
+        }
+    </style>
+    <body>
+        <a id="loader" onclick="loadmore()">Load more</a>
+        <div id="template">
+
+            <!-- this is the sample template
+                it'll get removed by the tumblr.js script
+            -->
+                    <div class=" b-c-2 bg-c-0 no-source-text">
+                        <div id="_T(ID)" class="_T(TYPE) loaded-image">
+                            <img id="_T(IMAGE)_T(PHOTO-POST-ONLY)" class="borderhover medium" onclick="openImg(this, loadImageOptions)">
+                            <div id="_T(IMAGES)_T(PHOTO-POST-ONLY)" class="mini-image-holder" onclick="preOpenImg(event)">
+                            </div>
+                            <div id="_T(REGULAR-POST-ONLY)">
+                                <h3>_T(TITLE)</h3>
+                                _T(BODY)
+                            </div>
+                            <div id="_T(QUOTE-POST-ONLY)">
+                                <h3>_T(TITLE)</h3>
+                                _T(BODY)
+                            </div>
+                            <div id="_T(LINK-POST-ONLY)">
+                                <a href="_T(URL)"><h3>_T(TITLE)</h3></a>
+                                _T(BODY)
+                            </div>
+                            <div id="_T(CONVERSATION-POST-ONLY)">
+                                <li id="_T(CONVERSATION)"></li>
+                            </div>
+                            <div id="_T(AUDIO-POST-ONLY)">
+                                <h2 class="audio-title">_T(TITLE) - _T(ARTIST) (_T(YEAR))</h2>
+                                <div id="_T(AUDIO)" class="audio"></div>
+                                <p class="audio-plays">played _T(PLAYS)</p>
+                            </div>
+                            <div id="_T(VIDEO-POST-ONLY)">
+                                <div id="_T(VIDEO)"></div>
+                                _T(BODY)
+                            </div>
+                            <ul>
+                                <li id="_T(SINGLE-POST-ONLY)" class="meta-source">
+                                    <a href="https://_T(BLOG).tumblr.com/post/_T(ID)" target="_blank" class=" fa fa-tumblr-square"></a>
+                                </li>
+                                <li id="_T(MULTI-POST-ONLY)" class="meta-my-source">
+                                    <a href="http://beta.biepbot.com/art/_T(BLOG)/_T(ID)" target="_blank" class=" fa fa-external-link "></a>
+                                </li>
+                                <li id="_T(REBLOG_BUTTON)" class="meta-reblog">
+                                </li>
+                                <li class="meta-notes float-right">
+                                    <p style="font-size: 15px;line-height: 25px;">_T(NICENOTES)</p>
+                                </li>
+                            </ul>
+                        </div>
+                        <div id="_T(PHOTO-POST-ONLY)" class="source-description">
+                            _T(DESCRIPTION)
+                        </div>
+                        <p class="date">Posted at _T(NICEDATE)</p>
+                        <hr>
+                        <ul id="_T(TAGS)" class="tags">
+                        </ul>
+                    </div>
+                </div>
+
+
+    </body>
+    <script>
+        window.tumblrAPI = _t({
+		'blog': 'demo',
+        'template': document.getElementById('template').children[0]
+        });
+        
+        tumblrAPI.settings = {
+            'reblogs' : true,
+            'submissions' : true
+        };
+
+        // Set up event listeners
+        tumblrAPI.addEventListener('afterload', afterload);
+        tumblrAPI.addEventListener('stop', end);
+        tumblrAPI.load(5);
+
+        var o = document.getElementById('loader');
+
+        function loadmore() {
+            tumblrAPI.load(5);
+        }
+
+        function end() {
+            o.parentNode.removeChild(o);
+        }
+
+        function afterload(html) {
+            var content = document.body;
+            if (html instanceof Array) {
+                for (var h in html) {
+                    content.insertBefore(html[h], o);
+                }
+            } else {
+                content.insertBefore(html, o);
+            }
+        }
+    </script>
+</html>
