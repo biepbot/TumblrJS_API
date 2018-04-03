@@ -2,7 +2,7 @@
 The Tumblr API V1 worked out in a JavaScript object to make life easier
 
 # Summary of features
-This scrip offers the following advantages in comparison to the default Tumblr API v1:
+This script offers the following advantages in comparison to the default Tumblr API v1:
 - the use of templates to generate posts
 - use of variable sizes for posts
 - switching blogs easily
@@ -54,6 +54,8 @@ Adjusting or setting settings:
 -  `setBlog(blog)`
 -  `filter(filters)`
 -  `getCache(<parameter>)` -> ieg `loaded-images` for browsing ALL IMAGES ON PAGE
+-  `loadNewPost`
+	loads the first post of the blog and appends it before
 
 ## Object callbacks
 'on' is optional

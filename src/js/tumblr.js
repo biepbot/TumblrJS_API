@@ -3,91 +3,6 @@
 * Copyright (c) 2018 Rowan Dings (biepbot.com)
 * Licensed under the MIT and GPL licenses.
 */
-/* ###################################################################
-    SUMMARY OF FEATURES
-################################################################### */
-// This script offers the following advantages in comparison to the
-// default Tumblr API (v1)
-//
-// the use of templates to generate posts
-// use of variable sizes for posts
-// switching blogs easily
-// filtering on types
-// filtering on 0-x tags
-// synchronous loading
-// callback on double posts / new posts
-// callback on loading, errors, cache exceeded
-// loading in advance to speed up the blog
-//
-
-
-/* ###################################################################
-    INTERFACE OPTIONS
-################################################################### */
-// declare object with HTML template (see example)
-//
-// object variables
-//  blog            "biepbot"
-//  template        "/template/tumblr.html", element, or string
-//  type            "photo" or null
-//
-// settings variables
-//  postID          id of a post to load (either defined or -1)
-//  thumbsize       default preview image size
-//
-// object callables:
-//  load(amount)
-//  setBlog(blog)
-//  filter(filters)
-//  getCache(<parameter>) -> loaded-images for browsing ALL IMAGES ON PAGE
-//
-// object callbacks
-//  onafterload & onbeforeload
-//  onerror
-//  ondouble
-//  onstop
-
-
-/* ###################################################################
-    TEMPLATE PARAMETERS
-################################################################### */
-//    id parameters:
-//    IMAGE       - base image
-//      on img; generate src + alt
-//      on div; generate <img/> + src + alt
-//    IMAGES      - all other images
-//      DIV ONLY
-//    TAGS        - generates <li> filled with tags
-//      UL ONLY
-//    REBLOG_BUTTON - generates a reblog button
-//    CONVERSATION  - generates <li> filled with conversation details
-//    VIDEO         - generates a video embed
-//
-//    variables:
-//    ID          - id for the post (used for double posts)
-//    REBLOG      - url for reblogging
-//    BLOG        - returns blog name
-//    NOTES       - returns notes amount (includes 'note/s')
-//    NICENOTES   - returns notes amount (includes 'note/s', dots/commas)
-//    DESCRIPTION - returns content
-//    TYPE        - type of post (image, text, video, etc)
-//    BODY        - returns the body (LINK description OR REGULAR body)
-//    TITLE       - returns the title (LINK text OR REGULAR title)
-//    URL         - returns the url for a LINK post
-//    ARTIST      - returns the artist of a song
-//    YEAR        - returns the year of a song
-//    ALBUM       - returns the album of a song
-//    PLAYS       - returns the amount of plays of a song
-//    NICEPLAYS   - returns the amount of plays of a song, to a nicer format
-//    DATE        - returns the date of the post (GMT)
-//    NICEDATE    - returns the date of a post, to a nicer format
-//
-//    remove parameters:
-//    SINGLE-POST-ONLY  - only shows this element if it's a single element post
-//    MULTI-POST-ONLY   - only shows this element if more posts are loaded
-//    <type>-POST-ONLY  - only shows this element if it's of the specified type
-//                          accepted types:
-//                               photo - link - regular - quote - conversation - audio
 
 function _t(ele) {
     if (!(this instanceof _t)) {
@@ -121,6 +36,41 @@ function _t(ele) {
                     console.error('Can only load integer amounts. For getting single posts, set the postID in settings');
                 }
             }
+        }
+        // Loads in new posts (in case of double)
+        var tempIndex = 0;
+        this.loadNewPosts = function() {
+            var ti = getCache('index'); // get previous index
+            setCache('index', tempIndex); // set the new index
+            tempIndex = ti;
+
+            // Check if the blog was entirely loaded
+            var stop = getCache('stop');
+
+            // Clear old cache
+            clearCache('posts');
+
+            // Allow loading in any case
+            setCache('stop', false);
+
+            // Demand a load of 1 new item (the new post)
+            qt = 1;
+
+            // Send request for new cache
+            demandUpdatedCacheFilter(function () {
+
+                // Once finished, update cache
+                updateCache(true); // true : appendBefore
+                // reset index
+                getCache()['index'] += tempIndex;
+                tempIndex = 0;
+                // clear new cache
+                clearCache('posts');
+
+                // If the blog was entirely loaded, refuse to load
+                setCache('stop', stop);
+            });
+
         }
 
         // v = username
@@ -202,7 +152,6 @@ function _t(ele) {
         }
         var me = this;
         var username = ele.blog || 'biepbot';   // Private variable to change instead of username
-        var lastReturn = 0; 				    // Last Tumblr API cache length
         var qt = 0; 						    // Quantity to load from Tumblr (cache)
         var blogs = [];						    // Blog caches and blog load data
         var current_filter;					    // Currently processed filter
@@ -491,64 +440,58 @@ function _t(ele) {
 
             // Load in from cache
             while (qt > 0) {
-                // Parse first
+
+                // Get next from cache
                 var postobj = getCache('posts').shift();
                 if (postobj == null) {
+                    // If there was no cache
+
+                    // And there are no more new posts
                     if (getCache('stop')) {
                         callEvents('onstop');
                         return;
                     }
+                    // else, get new cache
                     demandUpdatedCacheFilter(updateCache);
                     return;
                 }
+
                 // Check if object already exists
                 var id = postobj['reblog-key'] + postobj['id'];
                 if (document.getElementById(id) == null) {
+                    // does not exist
 
                     if (before) {
+                        // is ordered to load before
                         callEvents('doubleload', parseImage(postobj));
                     } else
+                        // loads as normal
                         callEvents('afterload', parseImage(postobj));
                 } else {
+
+                    // trigger double event
                     callEvents('ondouble');
                     qt++; // Load next post
                 }
                 qt--; // Remove a counter from the quantity
+
                 // Increment index
-                if (filters.length < 2) getCache()['index'] += 1;
+                getCache()['index'] += 1;
             }
 
-            // if end of cache, call onstop
             if (getCache('posts').length == 0) {
+                // End of the road
                 callEvents('onstop');
             } else {
+                // Allow getting of new cache
                 setCache('preventload', false);
             }
         }
 
         function demandUpdatedCacheFilter(onTrigger) {
-            if (filters.length != 0) {
-                for (var i in filters) {
-                    var t = filters[i]['id'];
-                    waitForFilter(t, onTrigger);
-                }
-            } else {
-                var method = demandUpdatedCache; // regular
-                if (isPost()) method = demandSinglePostCache; // or with a post ID
-                if (method()) {
-                    waitUntil(isAPIloaded, onTrigger, 100, timeout, stopLoad);
-                }
+            if (demandUpdatedCache()) {
+                waitUntil(isAPIloaded, onTrigger, 100, timeout, stopLoad);
             }
-        }
-
-        function waitForFilter(t, onTrigger) {
-            waitUntil(filterlock, function () {
-                demandUpdatedCache(t);
-                waitUntil(isAPIloaded, function () {
-                    current_filter = t;
-                    onTrigger();
-                }, 100, timeout, stopLoad);
-            }, 100, timeout, filterunlock);
         }
 
         // For atomical locking
@@ -562,58 +505,27 @@ function _t(ele) {
             fl = false;
         }
 
-        function demandSinglePostCache() {
+        function demandUpdatedCache() {
+            var filter = filters[0] || false;
+
             // Check if there's enough posts in cache
-            if (qt > getCache('posts').length || (filters.length > 1)) {
-                // Load a new cache
-                loadScript('http://' + username + '.tumblr.com/api/read/json?id=' + getPostId(), true);
-                return true; // Updating
-            }
-            return false; // Not updating
-        }
-        function demandUpdatedCache(filter) {
-            // Check if there's enough posts in cache
-            if (qt > getCache('posts').length || (filters.length > 1)) {
+            if (qt > getCache('posts').length) {
                 tumblr_api_read = null;
-                if (qt > getCache('posts').length) {
-                    setCache('posts', []);
+                var base = 'http://' + username + '.tumblr.com/api/read/json?';
+
+                if (isPost()) {
+                    loadScript(base + 'id=' + getPostId(), true);
+                } else {
+                    var fget = filter ? '&tagged=' + htmlEncode(filter) : '';
+                    var ftype = type != 0 ? '&type=' + type : '';
+                    var url = base + 'num=50&start=' + getCache('index') + ftype + fget;
+                    loadScript(url, true);
                 }
-                var flog = filter ? ', filter[' + filter + ']' : '';
-                var fget = filter ? '&tagged=' + htmlEncode(filter) : '';
-                var ftype = type != 0 ? '&type=' + type : '';
-                var url = 'http://' + username + '.tumblr.com/api/read/json?num=50&start=' + getCache('index') + ftype + fget;
-                loadScript(url, true);
                 return true; // Updating
             }
             return false; // Not updating
         }
-        var tempIndex = 0;
-        function loadNewPosts() {
-            var ti = getCache('index'); // get previous index
-            setCache('index', tempIndex); // set the new index
-            tempIndex = ti;
 
-            // Check if the blog was entirely loaded
-            var stop = getCache('stop');
-
-            // Clear old cache
-            clearCache('posts');
-
-            qt = 1;
-            demandUpdatedCacheFilter(function () {
-                triggerAfter(function () { updateCache(true); }, onNewPostLoadFinished);
-
-                // If the blog was entirely loaded, refuse to load
-                setCache('stop', stop);
-            });
-
-        }
-        function onNewPostLoadFinished() {
-            // reset index
-            getCache()['index'] += tempIndex;
-            // clear new cache
-            clearCache('posts');
-        }
         function updateCache(appendBefore) {
             if (!isAPIloaded() || qt > 50) {
                 return;
@@ -621,12 +533,15 @@ function _t(ele) {
 
             var filterbug = filters.length > 0 ? 48 : 50;
 
-            lastReturn = tumblr_api_read.posts.length;
+            // Add the new cache
             addCache(tumblr_api_read.posts);
+
             // Check if loaded the last images
             if (tumblr_api_read.posts.length < filterbug) {
                 stopLoad(true); // refuse to cache any more
             }
+
+            // Clear the tumblr API to clear memory
             tumblr_api_read.posts.length = 0;
             var empty = false;
 
@@ -638,9 +553,7 @@ function _t(ele) {
                     return posts[i]['reblogged-from-name'] == null;
                 });
                 setCache('posts', []);
-                if (posts.length !== 0) {
-                    addCache(posts)
-                }
+                addCache(posts);
             }
 
             ///////////////// SUBMISSIONS
@@ -651,14 +564,8 @@ function _t(ele) {
                     return posts[i]['is-submission'] == false;
                 });
                 setCache('posts', []);
-                if (posts.length !== 0) {
-                    addCache(posts);
-                }
+                addCache(posts);
             }
-
-            // raise index with skipped posts to prevent loading those
-            var skipped = lastReturn - getCache('posts').length;
-            setCache('index', getCache('index') + skipped);
 
             ///////////////// FILTERS
             // If there is only a single filter
@@ -667,7 +574,6 @@ function _t(ele) {
             } else {
                 // Else, process all filter caches
                 var posts = getCache('posts');
-                tempIndex = getCache('index');
 
                 // Make unique and filter out posts that are in the filters
                 posts = posts.filter(function (e, i, posts) {
@@ -676,7 +582,7 @@ function _t(ele) {
                     for (var j in filters) {
                         var present = false;
                         for (var k in tags) {
-                            present = tags[k].toLowerCase() === filters[j]['id'].toLowerCase();
+                            present = tags[k].toLowerCase() === filters[j].toLowerCase();
                             if (present) break;
                         }
                         nocontain = !present;
@@ -685,29 +591,15 @@ function _t(ele) {
                     return posts.lastIndexOf(e) === i && !nocontain;
                 });
 
-                var last = current_filter == filters[filters.length - 1]['id'];
-                if (last) {
-                    // Set index to new cache amount
-                    setCache('index', Math.round((tempIndex + 50) / 50) * 50);
-                } else {
-                    // Set index to previous index
-                    setCache('index', tempIndex);
-                }
                 setCache('posts', []);
                 addCache(posts);
-
-                // Unlock filter
-                filterunlock();
-
-                if (last) {
-                    performLoad(appendBefore);
-                }
-                return;
+                performLoad(appendBefore);
             }
             // Unlock filter
             filterunlock();
             tumblr_api_read = null;
         }
+
         function revalidateScripts() {
             var scripts = document.getElementsByTagName('script');
             for (var i in scripts) {
@@ -1070,12 +962,12 @@ function _t(ele) {
         }
         function renderAudio(e, o) {
             if (!o.audio) return;
-            
+
             e.innerHTML = o.audio.embed;
         }
         function renderVideo(e, o) {
             if (!o.video) return;
-            
+
             e.innerHTML = o.video.embed;
         }
         function parseRegular(e, o) {
