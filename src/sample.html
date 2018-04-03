@@ -70,11 +70,10 @@
         }
         li.conversation {
             display: block;
-            height: initial;
+            height: auto;
             background: #EEE;
             padding: 5px;
             border-radius: 8px;
-            overflow: hidden;
         }
         li.conversation:hover {
             background: #DDD;
@@ -103,8 +102,10 @@
             -->
                     <div class=" b-c-2 bg-c-0 no-source-text">
                         <div id="_T(ID)" class="_T(TYPE) loaded-image">
-                            <img id="_T(IMAGE)_T(PHOTO-POST-ONLY)" class="borderhover medium" onclick="openImg(this, loadImageOptions)">
-                            <div id="_T(IMAGES)_T(PHOTO-POST-ONLY)" class="mini-image-holder" onclick="preOpenImg(event)">
+                            <div id="_T(PHOTO-POST-ONLY)">
+                            <img id="_T(IMAGE)" class="borderhover medium" onclick="openImg(this, loadImageOptions)">
+                            <div id="_T(IMAGES)" class="mini-image-holder" onclick="preOpenImg(event)">
+                            </div>
                             </div>
                             <div id="_T(REGULAR-POST-ONLY)">
                                 <h3>_T(TITLE)</h3>
