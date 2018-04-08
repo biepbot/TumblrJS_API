@@ -13,6 +13,33 @@ This script offers the following advantages in comparison to the default Tumblr 
 - callback on loading, errors, cache exceeded
 - loading in advance to speed up the blog
 
+# Installation
+Add as javascript file to your page:
+```
+	<head>
+        	<script src="js/tumblr.js?v=1.14" type="text/javascript"></script>
+    	</head>
+```
+
+## Usage
+After adding, you are able to use the `_t` to create a Tumblr JS API object.
+Populate it as following:
+```
+	var tumblrAPI = _t({
+		'blog': 'demo',
+        	'template': <url, element OR string>
+        });
+        
+        tumblrAPI.settings = {
+            'reblogs' : true,
+            'submissions' : true
+        };
+```
+Take note that this library is not built to have multiple instances of this object, so it is best to have it globally defined, either in the window, your universal script, your universal object, etc.
+
+Below follows a more detailed explanation to the usage of this Tumblr JS API object.
+See "object callbacks" for a detailed usage of the object, or check out the sample.html page
+
 # Interface options
 ## Object variables
 -  `blog`            
