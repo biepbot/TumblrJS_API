@@ -13,7 +13,7 @@ function _t(ele) {
         ################################################################### */
 
         // v = amount or string for post
-        this.load = function load(v) {
+        _t.prototype.load = function (v) {
             // queue a load until a load is possible
             if (!usableTemplate()) {
                 waitUntil(usableTemplate, function () {
@@ -39,7 +39,7 @@ function _t(ele) {
         }
         // Loads in new posts (in case of double)
         var tempIndex = 0;
-        this.loadNewPosts = function() {
+        _t.prototype.loadNewPosts = function() {
             var ti = getCache('index'); // get previous index
             setCache('index', tempIndex); // set the new index
             tempIndex = ti;
@@ -74,7 +74,7 @@ function _t(ele) {
         }
 
         // v = username
-        this.setBlog = function setBlog(v) {
+        _t.prototype.setBlog = function (v) {
             username = v;
         }
 
@@ -82,7 +82,7 @@ function _t(ele) {
         this.getCache = getCache;
 
         // v = array of filters or single filter
-        this.filter = function filter(v) {
+        _t.prototype.filter = function (v) {
             clearCache(); // any loaded post is not necessarily needed
 
             if (!v.length) {
@@ -98,13 +98,13 @@ function _t(ele) {
         /* ###################################################################
             Public events
         ################################################################### */
-        this.addEventListener = function addEventListener(n, v) {
+        _t.prototype.addEventListener = function(n, v) {
             var obj = {};
             obj.event = n;
             obj.function = v;
             events.push(obj);
         }
-        this.removeEventListener = function removeEventListener(n, v) {
+        _t.prototype.removeEventListener = function(n, v) {
             var obj = {};
             obj.event = n;
             obj.function = v;
@@ -159,7 +159,7 @@ function _t(ele) {
         function getPostId() {                  // id of the post, if any
             return me.settings.postID || -1;
         }
-        var timeout = ele.template || 5000;     // timeout for tumblr
+        var timeout = ele.timeout || 5000;     // timeout for tumblr
         var type = ele.type;
         var usableTemplate = function () {
             return template.indexOf('<') !== -1;
@@ -478,14 +478,8 @@ function _t(ele) {
                 // Increment index
                 getCache()['index'] += 1;
             }
-
-            if (getCache('posts').length == 0) {
-                // End of the road
-                callEvents('onstop');
-            } else {
-                // Allow getting of new cache
-                setCache('preventload', false);
-            }
+            // Allow getting of new cache
+            setCache('preventload', false);
         }
 
         function demandUpdatedCacheFilter(onTrigger) {
