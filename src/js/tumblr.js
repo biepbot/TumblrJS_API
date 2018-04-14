@@ -478,6 +478,12 @@ function _t(ele) {
                 // Increment index
                 getCache()['index'] += 1;
             }
+
+            if (getCache('posts').length == 0) {
+                // load a new cache in advance
+                demandUpdatedCacheFilter(updateCache);
+            }
+
             // Allow getting of new cache
             setCache('preventload', false);
         }
