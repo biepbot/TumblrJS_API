@@ -8,6 +8,9 @@ function _t(ele) {
     if (!(this instanceof _t)) {
         return new _t(ele);
     } else {
+
+        var small_size = 250;
+
         /* ###################################################################
             Public functions
         ################################################################### */
@@ -156,6 +159,7 @@ function _t(ele) {
         var blogs = [];						    // Blog caches and blog load data
         var current_filter;					    // Currently processed filter
         var filters = [];                       // all filters
+        var preventDuplicates = ele.settings.preventDuplicates || false;
         function getPostId() {                  // id of the post, if any
             return me.settings.postID || -1;
         }
@@ -314,7 +318,7 @@ function _t(ele) {
             var resource = document.createElement("script");
             resource.async = "true";
             resource.src = r + url;
-            resource.onerror = function(e) {
+            resource.onerror = function (e) {
                 var loc = 'https://www.tumblr.com/privacy/consent'
                 // set our own redirection (hope for future support, too)
                 loc += '?redirect=' + encodeURIComponent(window.location.href);
@@ -476,13 +480,23 @@ function _t(ele) {
                 var id = postobj['reblog-key'] + postobj['id'];
                 if (document.getElementById(id) == null) {
                     // does not exist
+                    var add = true;
 
-                    if (before) {
-                        // is ordered to load before
-                        callEvents('doubleload', parseImage(postobj));
-                    } else
+                    // check for duplicates if have to -- image only, as of yet
+                    if (preventDuplicates) {
+                        add = !isDuplicate(postobj);
+                    }
+                    if (add) {
+                        if (before) {
+                            // is ordered to load before
+                            callEvents('doubleload', parseImage(postobj));
+                        } else
+                            // loads as normal
+                            callEvents('afterload', parseImage(postobj));
+                    } else {
                         // loads as normal
-                        callEvents('afterload', parseImage(postobj));
+                        callEvents('onduplicate');
+                    }
                 } else {
 
                     // trigger double event
@@ -502,6 +516,25 @@ function _t(ele) {
 
             // Allow getting of new cache
             setCache('preventload', false);
+        }
+
+        // Checks if a post is duplicate
+        // only works on images as of yet
+        function isDuplicate(postobj) {
+            if (postobj.type === 'image') {
+                // parse the image;
+                // check for size() as well as 250
+
+                var added = getCache('loaded-images');
+                for (var i = 0; i < added.length; i++) {
+                    var img = added[i];
+                    if (img.src === postobj['photo-url-' + small_size] || img.src === postobj['photo-url-' + size()]) {
+                        // duplicate
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
         function demandUpdatedCacheFilter(onTrigger) {
@@ -909,7 +942,7 @@ function _t(ele) {
             }
             for (var i = 1; i < ei.length; i++) {
                 count++;
-                var im = ei[i]['photo-url-250'];
+                var im = ei[i]['photo-url-' + small_size];
                 var w = ei[i]['width'], h = ei[i]['height'];
 
                 image = document.createElement('img');

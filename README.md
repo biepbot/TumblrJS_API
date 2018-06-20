@@ -67,6 +67,8 @@ Creating the Tumble API object:
 	defaults to false
 -  `submissions`	   
 	defaults to false
+-  `preventDuplicates`
+	Prevents duplicates of the same image. Ieg reblogs or similar, does NOT look at replies. Defaults to false
 
 Adjusting or setting settings:
 ```
@@ -96,6 +98,8 @@ Adjusting or setting settings:
 	when a new post has been made while something has been searched
 -  `onstop`
 	when the blog has reached the end, and has no more posts to display
+-  `onduplicate`
+	used in combination with preventDuplicates. Will be called if there's a duplicate entry
 
 Set up event listeners for these callbacks;
 ```
