@@ -977,6 +977,7 @@ function _t(ele) {
                     // add child img
                     var img = document.createElement("img");
                     img.src = src;
+                    addLoadedImg(img);
                     e.appendChild(img);
                 }
             }
