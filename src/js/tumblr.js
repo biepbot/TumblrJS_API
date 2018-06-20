@@ -97,9 +97,33 @@ function _t(ele) {
         /* ###################################################################
             Trackers for global errors
         ################################################################### */
+        function checkPrivacyPolicy() {
+            var url = 'http://demo.tumblr.com/api/read/json';
+            var xhttp = new XMLHttpRequest();
+            xhttp.open('HEAD', url);
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == this.DONE) {
+                    if (this.getResponseHeader('Content-Type').indexOf('text/html')) {
+                        // location will be set to an url with a redirection link behind it
+                        // get location
+                        var loc = this.getResponseHeader('location').split('?')[0];
+                        // set our own redirection (hope for future support, too)
+                        loc += '?redirect=' + encodeURIComponent(window.location.href);
+
+                        // Have them resolve the error
+                        showUrl(loc);
+                    }
+                }
+            };
+            xhttp.send();
+        };
+        checkPrivacyPolicy();
+
         window.addEventListener('error', function (msg, url, lineNo, columnNo, error) {
+            var origin = url || msg.filename;
+
             //urls such as ".tumblr.com/api/read/json" are our issue
-            if (url.indexOf('.tumblr.com/api/read/json' > 0)) {
+            if (origin.indexOf('.tumblr.com/api/read/json' > 0)) {
                 // it's a privacy blocker if it contains text/html
                 if (msg.indexOf('text/html') > 0) {
                     // now display and resolve
@@ -244,6 +268,14 @@ function _t(ele) {
         /*
          * End of source
         */
+        if (!htmlEncode)
+            function htmlEncode(s) {
+                var el = document.createElement("div");
+                el.innerText = el.textContent = s;
+                s = el.innerHTML;
+                s = s.replace(' ', '%20');
+                return s;
+            }
         function addCommas(nStr) {
             nStr += '';
             var x = nStr.split('.');
