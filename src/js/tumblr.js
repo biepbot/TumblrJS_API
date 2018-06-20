@@ -94,23 +94,6 @@ function _t(ele) {
             filterunlock();
             _load(5);
         }
-        /* ###################################################################
-            Trackers for global errors
-        ################################################################### */
-        window.addEventListener('error', function (msg, url, lineNo, columnNo, error) {
-            var origin = url || msg.filename;
-
-            //urls such as ".tumblr.com/api/read/json" are our issue
-            if (origin.indexOf('.tumblr.com/api/read/json') > 0) {
-                // it's a privacy blocker if it contains text/html
-                if (msg.indexOf('text/html') > 0) {
-                    // now display and resolve
-                    showUrl(url);
-                } else {
-                    console.warn("Unknown root cause. Contact the TumblrJS API dev with this issue");
-                }
-            }
-        })
 
         /* ###################################################################
             Public events
@@ -565,7 +548,7 @@ function _t(ele) {
 
         function updateCache(appendBefore) {
             // check if tumblr_api_read is json
-            if (tumblr_api_read !== null && typeof tumblr_api_read === 'object') {
+            if (!(tumblr_api_read !== null && typeof tumblr_api_read === 'object')) {
                 showUrl(tumblr_api_read);
                 return;
             }
