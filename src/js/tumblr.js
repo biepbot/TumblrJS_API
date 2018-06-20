@@ -956,6 +956,7 @@ function _t(ele) {
                 if (e.tagName === 'IMG') {
                     // set img resources
                     e.src = src;
+                    addLoadedImg(e);
                 } else {
                     // add child img
                     var img = document.createElement("img");
