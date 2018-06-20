@@ -39,7 +39,7 @@ function _t(ele) {
         }
         // Loads in new posts (in case of double)
         var tempIndex = 0;
-        _t.prototype.loadNewPosts = function() {
+        _t.prototype.loadNewPosts = function () {
             var ti = getCache('index'); // get previous index
             setCache('index', tempIndex); // set the new index
             tempIndex = ti;
@@ -94,17 +94,32 @@ function _t(ele) {
             filterunlock();
             _load(5);
         }
+        /* ###################################################################
+            Trackers for global errors
+        ################################################################### */
+        window.addEventListener('error', function (msg, url, lineNo, columnNo, error) {
+            //urls such as ".tumblr.com/api/read/json" are our issue
+            if (url.indexOf('.tumblr.com/api/read/json' > 0)) {
+                // it's a privacy blocker if it contains text/html
+                if (msg.indexOf('text/html') > 0) {
+                    // now display and resolve
+                    showUrl(url);
+                } else {
+                    console.warn("Unknown root cause. Contact the TumblrJS API dev with this issue");
+                }
+            }
+        })
 
         /* ###################################################################
             Public events
         ################################################################### */
-        _t.prototype.addEventListener = function(n, v) {
+        _t.prototype.addEventListener = function (n, v) {
             var obj = {};
             obj.event = n;
             obj.function = v;
             events.push(obj);
         }
-        _t.prototype.removeEventListener = function(n, v) {
+        _t.prototype.removeEventListener = function (n, v) {
             var obj = {};
             obj.event = n;
             obj.function = v;
@@ -512,7 +527,6 @@ function _t(ele) {
             if (qt > getCache('posts').length) {
                 tumblr_api_read = null;
                 var base = 'http://' + username + '.tumblr.com/api/read/json?';
-
                 if (isPost()) {
                     loadScript(base + 'id=' + getPostId(), true);
                 } else {
@@ -526,7 +540,18 @@ function _t(ele) {
             return false; // Not updating
         }
 
+        function showUrl(url) {
+            // go there
+            location.href = url;
+        }
+
         function updateCache(appendBefore) {
+            // check if tumblr_api_read is json
+            if (tumblr_api_read !== null && typeof tumblr_api_read === 'object') {
+                showUrl(tumblr_api_read);
+                return;
+            }
+
             if (!isAPIloaded() || qt > 50) {
                 return;
             }
