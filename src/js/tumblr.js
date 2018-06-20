@@ -159,7 +159,9 @@ function _t(ele) {
         var blogs = [];						    // Blog caches and blog load data
         var current_filter;					    // Currently processed filter
         var filters = [];                       // all filters
-        var preventDuplicates = ele.settings.preventDuplicates || false;
+        function getPreventDuplicates() {
+            return me.settings.preventDuplicates || false;
+        }
         function getPostId() {                  // id of the post, if any
             return me.settings.postID || -1;
         }
@@ -483,7 +485,7 @@ function _t(ele) {
                     var add = true;
 
                     // check for duplicates if have to -- image only, as of yet
-                    if (preventDuplicates) {
+                    if (getPreventDuplicates()) {
                         add = !isDuplicate(postobj);
                     }
                     if (add) {

@@ -48,6 +48,8 @@ See "object callbacks" for a detailed usage of the object, or check out the samp
 	"/template/tumblr.html", element, or string
 -  `type`            
 	"photo", "audio", "conversation", "regular"... etc or null for all
+-  `preventDuplicates`
+	Prevents duplicates of the same image. Ieg reblogs or similar, does NOT look at replies. Defaults to false
 
 Creating the Tumble API object:
 ```
@@ -67,8 +69,6 @@ Creating the Tumble API object:
 	defaults to false
 -  `submissions`	   
 	defaults to false
--  `preventDuplicates`
-	Prevents duplicates of the same image. Ieg reblogs or similar, does NOT look at replies. Defaults to false
 
 Adjusting or setting settings:
 ```
