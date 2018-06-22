@@ -804,6 +804,9 @@ function _t(ele) {
         registerParameter('DATE', 'v', getDate);
         registerParameter('NICEDATE', 'v', getNiceDate);
 
+        registerParameter('HAS_MORE_IMAGES', 'v', getImagesMore);
+        registerParameter('IMAGES_COUNT', 'v', getImagesCount);
+
         // register elements
         registerParameter('IMAGE', 'e', renderImage);
         registerParameter('REBLOG_BUTTON', 'e', renderReblogButton);
@@ -925,6 +928,18 @@ function _t(ele) {
                 return o.id3.year;
             }
             return '';
+        }
+        function getImagesMore(o) {
+            return getImagesCount(o) === 0 ? 'nomore' : 'more';
+        }
+        function getImagesCount(o) {
+            var ar = o['extra-images'];
+            if (ar) {
+                if (ar.length > 0) {
+                    return ar.length;
+                }
+            }
+            return 0;
         }
         function getPlays(o) {
             if (o.audio) {
