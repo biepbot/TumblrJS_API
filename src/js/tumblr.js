@@ -308,12 +308,16 @@ function _t(ele) {
             }
             return false;
         }
-        function removeClass(ele, cls) {
-            if (hasClass(ele, cls)) {
-                var reg = new RegExp("(\\s|^)" + cls + "(\\s|$)");
-                ele.className = ele.className.replace(reg, " ")
+        if (window.removeClass) {
+            console.warn('window.removeClass is already present. This should accept; element , classname');
+        } else
+            // dependency on the page for readmore elements
+            window.removeClass = function removeClass(ele, cls) {
+                if (hasClass(ele, cls)) {
+                    var reg = new RegExp("(\\s|^)" + cls + "(\\s|$)");
+                    ele.className = ele.className.replace(reg, " ")
+                }
             }
-        }
         function loadScript(url, ignore) {
             var r = window.location.hostname === '' ? '' : '/';
             if (ignore) r = '';
@@ -884,7 +888,13 @@ function _t(ele) {
             return c == 1 ? c + ' note' : c + ' notes';
         }
         function getDescription(o) {
-            return o.description || '';
+            var desc = o.description || '';
+            var readmore = desc.indexOf('<!-- more -->') !== -1;
+            if (readmore) {
+                desc = desc.replace('<!-- more -->', '<div class="readmore" onclick="removeClass(this, \'readmore\')">');
+                desc += '</div>';
+            }
+            return desc;
         }
         function getType(o) {
             return o.type;
