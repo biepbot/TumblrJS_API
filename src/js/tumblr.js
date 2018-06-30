@@ -289,7 +289,7 @@ function _t(ele) {
             if (mins < 10) {
                 mins = '0' + mins;
             }
-            return date.getDate() + ' ' + monthNames[date.getMonth()] + ' ' + date.getFullYear() + " " + date.getHours() + ":" + mins;
+            return date.getDate() + ' ' + monthNames[date.getMonth()] + ' ' + date.getFullYear() + " at " + date.getHours() + ":" + mins;
         }
         function endsWith(str, suffix) {
             return str.indexOf(suffix, str.length - suffix.length) !== -1;
