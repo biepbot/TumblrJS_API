@@ -20,7 +20,7 @@ function _t(ele) {
             // queue a load until a load is possible
             if (!usableTemplate()) {
                 waitUntil(usableTemplate, function () {
-                    load(v);
+                    this.load(v);
                 }, 200);
                 return;
             }
