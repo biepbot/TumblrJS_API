@@ -10,6 +10,7 @@ function _t(ele) {
     } else {
 
         var small_size = 250;
+        var me = this;
 
         /* ###################################################################
             Public functions
@@ -20,7 +21,7 @@ function _t(ele) {
             // queue a load until a load is possible
             if (!usableTemplate()) {
                 waitUntil(usableTemplate, function () {
-                    this.load(v);
+                    me.load(v);
                 }, 200);
                 return;
             }
@@ -153,7 +154,6 @@ function _t(ele) {
                 xhr.send();
             }
         }
-        var me = this;
         var username = ele.blog || 'biepbot';   // Private variable to change instead of username
         var qt = 0; 						    // Quantity to load from Tumblr (cache)
         var blogs = [];						    // Blog caches and blog load data
