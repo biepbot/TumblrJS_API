@@ -149,7 +149,10 @@ function _t(ele) {
                         template = this.responseText;
                         callEvents('init');
                     } else if (xhr.status !== 200) {
-                        console.error(xhr.status + ' ERROR during loading "' + xhr.responseURL + '": \r\n' + xhr.responseText);
+                        callEvents('error', {
+                            cause : 'template_error',
+                            details : xhr
+                        });
                     }
                 }
                 xhr.send();

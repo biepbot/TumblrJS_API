@@ -95,7 +95,7 @@ Adjusting or setting settings:
 -  `onbeforeload`
 	when the user queried a search
 -  `onerror`
-	when the blog couldn't load the next cache
+	on errors (template loading, blog fetching, etc)
 -  `ondouble`
 	when a new post has been made while something has been searched
 -  `onstop`
