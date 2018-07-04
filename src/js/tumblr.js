@@ -147,6 +147,7 @@ function _t(ele) {
                 xhr.onreadystatechange = function () {
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         template = this.responseText;
+                        callEvents('init');
                     } else if (xhr.status !== 200) {
                         console.error(xhr.status + ' ERROR during loading "' + xhr.responseURL + '": \r\n' + xhr.responseText);
                     }
@@ -157,7 +158,6 @@ function _t(ele) {
         var username = ele.blog || 'biepbot';   // Private variable to change instead of username
         var qt = 0; 						    // Quantity to load from Tumblr (cache)
         var blogs = [];						    // Blog caches and blog load data
-        var current_filter;					    // Currently processed filter
         var filters = [];                       // all filters
         function getPreventDuplicates() {
             return me.settings.preventDuplicates || false;

@@ -88,6 +88,8 @@ Adjusting or setting settings:
 
 ## Object callbacks
 'on' is optional
+-  `oninit`
+	when the tumblr api finished loading its essentials
 -  `onafterload`
 	when a post has been loaded
 -  `onbeforeload`
