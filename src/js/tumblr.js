@@ -149,10 +149,7 @@ function _t(ele) {
                         template = this.responseText;
                         callEvents('init');
                     } else if (xhr.status !== 200) {
-                        callEvents('error', {
-                            cause : 'template_error',
-                            details : xhr
-                        });
+                        console.error(xhr.status + ' ERROR during loading "' + xhr.responseURL + '": \r\n' + xhr.responseText);
                     }
                 }
                 xhr.send();
@@ -361,7 +358,7 @@ function _t(ele) {
         function elementFromString(htmlString) {
             var div = document.createElement('div');
             div.innerHTML = htmlString.trim();
-            return div.firstChild;
+            return div.firstElementChild;
         }
         function waitUntil(funcCond, readyAction, checkInterval, timeout, timeoutfunc) {
             if (checkInterval == null) {
