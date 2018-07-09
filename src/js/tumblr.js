@@ -157,8 +157,8 @@ function _t(ele) {
                         callEvents('init');
                     } else if (xhr.status !== 200) {
                         callEvents('error', {
-                            cause : 'template_error',
-                            details : xhr
+                            cause: 'template_error',
+                            details: xhr
                         });
                     }
                 }
@@ -339,14 +339,9 @@ function _t(ele) {
                 }
             }
         function loadScript(url, ignore) {
-            var r = window.location.hostname === '' ? '' : '/';
-            if (ignore) r = '';
-            var resource = document.createElement("script");
-            resource.async = "true";
-            resource.src = r + url;
-            resource.onerror = function (e) {
-                checkIfBlog(username, function (status) {
-                    if (status >= 200 && status < 400) {
+            function verifyStatus(status, error) {
+                if (status >= 200 && status < 400) {
+                    if (error != null && error != false) {
                         // all in order, maybe redirected
                         // check if blog
                         var loc = 'https://www.tumblr.com/privacy/consent'
@@ -355,19 +350,45 @@ function _t(ele) {
 
                         // Have them resolve the error
                         showUrl(loc);
-                    } else {
-                        if (status === 404) {
-                        // blog does not exist
-                            callEvents('notablog', username);
-                        } else {
-                            // unknown error
-                            callEvents('error', {
-                                cause : 'script_load_error',
-                                details : e
-                            });
-                        }
                     }
-                });
+                } else {
+                    if (status === 404) {
+                        // blog does not exist
+                        callEvents('notablog', username);
+                    } else {
+                        // unknown error
+                        callEvents('error', {
+                            cause: 'script_load_error',
+                            details: e
+                        });
+                    }
+                }
+            }
+
+            var r = window.location.hostname === '' ? '' : '/';
+            if (ignore) r = '';
+            var resource = document.createElement("script");
+            resource.async = "true";
+            resource.src = r + url;
+            resource.onload = function (e) {
+                // If no status found
+                var status = getCache('blog_status');
+                if (status == null) {
+                    checkIfBlog(username, function (status) {
+                        setCache('blog_status', status);
+                        verifyStatus(status, false);
+                    });
+                }
+            }
+            resource.onerror = function (e) {
+                var status = getCache('blog_status');
+                if (status == null) {
+                    checkIfBlog(username, function (status) {
+                        verifyStatus(status, true);
+                    });
+                } else {
+                    verifyStatus(status, true);
+                }
             }
             var script = document.getElementsByTagName("script")[0];
             script.parentNode.insertBefore(resource, script)
