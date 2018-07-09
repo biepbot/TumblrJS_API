@@ -340,6 +340,7 @@ function _t(ele) {
             }
         function loadScript(url, ignore) {
             function verifyStatus(status, error) {
+                setCache('blog_status', status);
                 if (status >= 200 && status < 400) {
                     if (error != null && error != false) {
                         // all in order, maybe redirected
@@ -375,7 +376,6 @@ function _t(ele) {
                 var status = getCache('blog_status');
                 if (status == null) {
                     checkIfBlog(username, function (status) {
-                        setCache('blog_status', status);
                         verifyStatus(status, false);
                     });
                 }
