@@ -114,6 +114,13 @@ function _t(ele) {
             obj.function = v;
             removeA(events, obj);
         }
+        _t.prototype.getEvents = function() {
+            return {
+                id : 'events',
+                events : events
+            }
+        }
+
         function callEvents(name, data) {
             for (var i = 0; i < events.length; i++) {
                 var e = events[i];
@@ -824,6 +831,13 @@ function _t(ele) {
         registerParameter('CONVERSATION-POST-ONLY', 'e', parseConversation);
         registerParameter('AUDIO-POST-ONLY', 'e', parseAudio);
         registerParameter('VIDEO-POST-ONLY', 'e', parseVideo);
+
+        _t.prototype.getParameters = function() {
+            return {
+                id : 'parameters',
+                parameters : supportedParameters
+            }
+        }
 
         function registerParameter(parameter, t, r) {
             supportedParameters.push({
