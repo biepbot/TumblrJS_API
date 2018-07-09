@@ -114,10 +114,10 @@ function _t(ele) {
             obj.function = v;
             removeA(events, obj);
         }
-        _t.prototype.getEvents = function() {
+        _t.prototype.getEvents = function () {
             return {
-                id : 'events',
-                events : events
+                id: 'events',
+                events: events
             }
         }
 
@@ -156,7 +156,10 @@ function _t(ele) {
                         template = this.responseText;
                         callEvents('init');
                     } else if (xhr.status !== 200) {
-                        console.error(xhr.status + ' ERROR during loading "' + xhr.responseURL + '": \r\n' + xhr.responseText);
+                        callEvents('error', {
+                            cause : 'template_error',
+                            details : xhr
+                        });
                     }
                 }
                 xhr.send();
@@ -214,6 +217,16 @@ function _t(ele) {
 		/* ##############################
 			Function dependencies
         ############################## */
+        function checkIfBlog(blog, callback) {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function () {
+                if (this.readyState === 4) {
+                    callback(this.status);
+                }
+                xhttp.open("GET", "https://api.tumblr.com/v2/blog/" + blog + "/avatar/128", true);
+                xhttp.send();
+            }
+        }
         /*
          * Source: https://johnresig.com/files/pretty.js
          * Copyright (c) 2011 John Resig (ejohn.org)
@@ -332,12 +345,29 @@ function _t(ele) {
             resource.async = "true";
             resource.src = r + url;
             resource.onerror = function (e) {
-                var loc = 'https://www.tumblr.com/privacy/consent'
-                // set our own redirection (hope for future support, too)
-                loc += '?redirect=' + encodeURIComponent(window.location.href);
+                checkIfBlog(username, function (status) {
+                    if (status >= 200 && status < 400) {
+                        // all in order, maybe redirected
+                        // check if blog
+                        var loc = 'https://www.tumblr.com/privacy/consent'
+                        // set our own redirection (hope for future support, too)
+                        loc += '?redirect=' + encodeURIComponent(window.location.href);
 
-                // Have them resolve the error
-                showUrl(loc);
+                        // Have them resolve the error
+                        showUrl(loc);
+                    } else {
+                        if (status === 404) {
+                        // blog does not exist
+                            callEvents('notablog', username);
+                        } else {
+                            // unknown error
+                            callEvents('error', {
+                                cause : 'script_load_error',
+                                details : e
+                            });
+                        }
+                    }
+                });
             }
             var script = document.getElementsByTagName("script")[0];
             script.parentNode.insertBefore(resource, script)
@@ -832,10 +862,10 @@ function _t(ele) {
         registerParameter('AUDIO-POST-ONLY', 'e', parseAudio);
         registerParameter('VIDEO-POST-ONLY', 'e', parseVideo);
 
-        _t.prototype.getParameters = function() {
+        _t.prototype.getParameters = function () {
             return {
-                id : 'parameters',
-                parameters : supportedParameters
+                id: 'parameters',
+                parameters: supportedParameters
             }
         }
 
