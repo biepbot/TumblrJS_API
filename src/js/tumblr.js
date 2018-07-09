@@ -223,9 +223,9 @@ function _t(ele) {
                 if (this.readyState === 4) {
                     callback(this.status);
                 }
-                xhttp.open("GET", "https://api.tumblr.com/v2/blog/" + blog + "/avatar/128", true);
-                xhttp.send();
             }
+            xhttp.open("GET", "https://api.tumblr.com/v2/blog/" + blog + "/avatar/128", true);
+            xhttp.send();
         }
         /*
          * Source: https://johnresig.com/files/pretty.js
