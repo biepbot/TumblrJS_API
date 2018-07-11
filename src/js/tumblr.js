@@ -85,6 +85,10 @@ function _t(ele) {
         this.settings = {};
         this.getCache = getCache;
 
+        /* ###################################################################
+            Filters
+        ################################################################### */
+
         // v = array of filters or single filter
         _t.prototype.filter = function (v) {
             clearCache(); // any loaded post is not necessarily needed
@@ -97,6 +101,65 @@ function _t(ele) {
             filters = v;
             filterunlock();
             _load(5);
+        }
+
+        var c_filters = {
+            pre: [], // such as "user" and "blog"      seperated by :, added before the filter, called before filtering
+            delimiters: [], // such as "&&" and "||"   seperated by spaces instead of commas, accepts ()'s
+            tags: [], // such as "options"             seperated by :, added before the filter
+            hashes: [], // such as "-" and "?"         added before the filter
+            d: 'delimiters',
+            t: 'tags',
+            h: 'hashes',
+            p: 'pre'
+        };
+
+        // Add all the filter types
+        // Add delimiters
+        addFilter('&&', c_filters.d, function (e) {
+            return true;
+        }, 'Alternative for ","');
+        addFilter('||', c_filters.d, function (e) {
+            return true;
+        }, 'OR-statement');
+
+        // Add hashes
+        addFilter('-', c_filters.h, function (e) {
+            return true;
+        }, 'NOT this filter');
+        addFilter('?', c_filters.h, function (e) {
+            return true;
+        }, 'OPTIONAL filter');
+
+        // Add pre's
+        (function () {
+            function a(name) {
+                addFilter(name, c_filters.p, function () {
+                    return false;
+                }, 'Change to this blog');
+            }
+            a('user'); a('u');
+            a('blog'); a('b');
+            a('artist'); a('a');
+        }());
+
+        // Adds a filter
+        // func receives an object with
+        //  {
+        //      full : all the filters (array)
+        //      current : the current filter
+        //  }
+        _t.prototype.addFilter = function (name, type, func, desc) {
+            c_filters[type].push({
+                name: name,
+                func: func,
+                desc: desc
+            });
+        }
+
+        // Gets all usable filters
+        _t.prototype.getFilters = function () {
+            return c_filters;
         }
 
         /* ###################################################################

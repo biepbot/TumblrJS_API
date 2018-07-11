@@ -80,6 +80,8 @@ Adjusting or setting settings:
 
 ## Object callables:
 -  `load(amount)`
+-  `getFilters()` -> gets all usable filters (you can add new ones using `addFilter(...)`)
+-  `getEvents()` -> gets all currently in use events (by your code)
 -  `setBlog(blog)`
 -  `filter(filters)`
 -  `getCache(<parameter>)` -> ieg `loaded-images` for browsing ALL IMAGES ON PAGE
