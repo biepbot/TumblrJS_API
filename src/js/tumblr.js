@@ -149,7 +149,8 @@ function _t(ele) {
         //      full : all the filters (array)
         //      current : the current filter
         //  }
-        _t.prototype.addFilter = function (name, type, func, desc) {
+        _t.prototype.addFilter = addFilter;
+        function addFilter(name, type, func, desc) {
             c_filters[type].push({
                 name: name,
                 func: func,
@@ -406,6 +407,8 @@ function _t(ele) {
                 setCache('blog_status', status);
                 if (status >= 200 && status < 400) {
                     if (error != null && error != false) {
+                        //todo: find alternative (ieg, notification)
+
                         // all in order, maybe redirected
                         // check if blog
                         var loc = 'https://www.tumblr.com/privacy/consent'
@@ -535,6 +538,7 @@ function _t(ele) {
             setCache('preventload', false);
             setCache('posts', []);
             setCache('loaded-images', []);
+            setCache('loaded-posts', []);
         }
         //== Cache mutation ==//
         function persistBlogCache() {
@@ -546,6 +550,7 @@ function _t(ele) {
                 qobj['id'] = username;
                 qobj['posts'] = [];
                 qobj['loaded-images'] = [];
+                qobj['loaded-posts'] = [];
                 qobj['stop'] = false;
                 qobj['preventload'] = false;
                 qobj['index'] = 0;
@@ -613,6 +618,12 @@ function _t(ele) {
                     if (getPreventDuplicates()) {
                         add = !isDuplicate(postobj);
                     }
+                    
+                    if (type instanceof Array) {
+                        if (type.indexOf(postobj.type) === -1) {
+                            add = false;
+                        }
+                    }
                     if (add) {
                         if (before) {
                             // is ordered to load before
@@ -648,14 +659,18 @@ function _t(ele) {
         // Checks if a post is duplicate
         // only works on images as of yet
         function isDuplicate(postobj) {
-            if (postobj.type === 'image') {
+            if (postobj.type === 'photo') {
                 // parse the image;
                 // check for size() as well as 250
 
-                var added = getCache('loaded-images');
+                var added = getCache('loaded-posts');
                 for (var i = 0; i < added.length; i++) {
-                    var img = added[i];
-                    if (img.src === postobj['photo-url-' + small_size] || img.src === postobj['photo-url-' + size()]) {
+                    var p = added[i];
+                    if (p.type === 'photo')
+                    if ((p.images[0] === postobj['photo-url-1280']) // check if same size exists
+                        && (p.description === postobj['photo-caption']) // check if the same source text is present
+                        && (p.source === postobj['url']) // check if the source blog is the same
+                        ) {
                         // duplicate
                         return true;
                     }
@@ -691,8 +706,11 @@ function _t(ele) {
                 if (isPost()) {
                     loadScript(base + 'id=' + getPostId(), true);
                 } else {
+                    var ftype = '';
+                    if (!(type instanceof Array)) {
+                        ftype = type != 0 ? '&type=' + type : '';
+                    }
                     var fget = filter ? '&tagged=' + htmlEncode(filter) : '';
-                    var ftype = type != 0 ? '&type=' + type : '';
                     var url = base + 'num=50&start=' + getCache('index') + ftype + fget;
                     loadScript(url, true);
                 }
@@ -709,6 +727,7 @@ function _t(ele) {
         function updateCache(appendBefore) {
             // check if tumblr_api_read is json
             if (!(tumblr_api_read !== null && typeof tumblr_api_read === 'object')) {
+                alert('An error has occurred in the api: ' + tumblr_api_read);
                 showUrl(tumblr_api_read);
                 return;
             }
@@ -877,6 +896,12 @@ function _t(ele) {
             o.body = json['quote-text'];
             return o;
         }
+        function getAnswerObject(json) {
+            var o = getGeneralObject(json);
+            o.title = json['question'];
+            o.body = json['answer'];
+            return o;
+        }
         function getPhotoObject(json) {
 
             // Create HTML object
@@ -945,6 +970,7 @@ function _t(ele) {
         registerParameter('CONVERSATION-POST-ONLY', 'e', parseConversation);
         registerParameter('AUDIO-POST-ONLY', 'e', parseAudio);
         registerParameter('VIDEO-POST-ONLY', 'e', parseVideo);
+        registerParameter('ANSWER-POST-ONLY', 'e', parseAnswer);
 
         _t.prototype.getParameters = function () {
             return {
@@ -1196,6 +1222,11 @@ function _t(ele) {
                 e.parentNode.removeChild(e);
             }
         }
+        function parseAnswer(e, o) {
+            if (o.type !== 'answer') {
+                e.parentNode.removeChild(e);
+            }
+        }        
         function parseConversation(e, o) {
             if (o.type !== 'conversation') {
                 e.parentNode.removeChild(e);
@@ -1250,9 +1281,12 @@ function _t(ele) {
                 obj = getAudioObject(obj);
             } else if (obj.type === 'video') {
                 obj = getVideoObject(obj);
+            } else if (obj.type === 'answer') {
+                obj = getAnswerObject(obj);
             } else {
                 console.warn('Unsupported tumblr type:' + obj.type);
             }
+            getCache()['loaded-posts'].push(obj);
 
             var t = template;
 
